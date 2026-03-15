@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Change History{% endblock %}
+{% block content %}
+<div class="page-header"><h1>My Change History</h1></div>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Timestamp</th><th>Action</th><th>By</th><th>Old Value</th><th>New Value</th><th>Reason</th></tr>
+    </thead>
+    <tbody>
+    {% for log in logs.items %}
+    <tr>
+      <td style="white-space:nowrap;">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td><code style="font-size:.8rem;">{{ log.action }}</code></td>
+      <td>{{ log.actor.username if log.actor else '—' }}</td>
+      <td style="font-size:.8rem;max-width:180px;">{{ log.old_value or '—' }}</td>
+      <td style="font-size:.8rem;max-width:180px;">{{ log.new_value or '—' }}</td>
+      <td style="font-size:.8rem;">{{ log.reason or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:var(--text-muted);">No history found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="pagination">
+    {% if logs.has_prev %}<a href="{{ url_for('employee.my_audit', page=logs.prev_num) }}">&laquo; Prev</a>{% endif %}
+    <span class="active">{{ logs.page }} / {{ logs.pages }}</span>
+    {% if logs.has_next %}<a href="{{ url_for('employee.my_audit', page=logs.next_num) }}">Next &raquo;</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Entry Detail{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Time Entry #{{ entry.id }}</h1>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('timeclock.admin_edit_entry', entry_id=entry.id) }}" class="btn btn-warning btn-sm">Edit Entry</a>
+  {% elif entry.status != 'pending_edit' %}
+  <a href="{{ url_for('timeclock.request_edit', entry_id=entry.id) }}" class="btn btn-outline btn-sm">Request Edit</a>
+  {% endif %}
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Entry Details</div>
+    <table>
+      <tr><th>Employee</th><td>{{ entry.employee.full_name }}</td></tr>
+      <tr><th>Date</th><td>{{ entry.clock_in.strftime('%A, %B %d, %Y') }}</td></tr>
+      <tr><th>Clock In</th><td>{{ entry.clock_in.strftime('%I:%M %p') }}</td></tr>
+      <tr><th>Clock Out</th><td>{{ entry.clock_out.strftime('%I:%M %p') if entry.clock_out else '<em>Still open</em>' | safe }}</td></tr>
+      <tr><th>Duration</th><td>{{ entry.hours_display }}</td></tr>
+      <tr><th>Status</th><td><span class="badge {% if entry.status=='normal' %}badge-green{% elif entry.status=='edited' %}badge-blue{% elif entry.status=='pending_edit' %}badge-yellow{% else %}badge-red{% endif %}">{{ entry.status }}</span></td></tr>
+      <tr><th>Notes</th><td>{{ entry.notes or '—' }}</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Edit Requests</div>
+    {% if edit_reqs %}
+    {% for r in edit_reqs %}
+    <div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+      <span class="badge {% if r.status=='pending' %}badge-yellow{% elif r.status=='approved' %}badge-green{% else %}badge-red{% endif %}">{{ r.status }}</span>
+      <span style="font-size:.85rem;">Requested by {{ r.requester.full_name }} on {{ r.created_at.strftime('%b %d') }}</span>
+      <div style="font-size:.85rem;margin-top:.25rem;">
+        {% if r.requested_clock_in %}In: {{ r.requested_clock_in.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+        {% if r.requested_clock_out %} · Out: {{ r.requested_clock_out.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+      </div>
+      <div style="font-size:.8rem;color:var(--text-muted);">{{ r.reason }}</div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:var(--text-muted);">No edit requests for this entry.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Audit Trail</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Timestamp</th><th>Action</th><th>By</th><th>Old Value</th><th>New Value</th><th>Reason</th></tr></thead>
+    <tbody>
+    {% for log in audit_history %}
+    <tr>
+      <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td><code style="font-size:.8rem;">{{ log.action }}</code></td>
+      <td>{{ log.actor.username if log.actor else '—' }}</td>
+      <td style="font-size:.8rem;max-width:160px;">{{ log.old_value or '—' }}</td>
+      <td style="font-size:.8rem;max-width:160px;">{{ log.new_value or '—' }}</td>
+      <td style="font-size:.8rem;">{{ log.reason or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="color:var(--text-muted);">No audit history.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

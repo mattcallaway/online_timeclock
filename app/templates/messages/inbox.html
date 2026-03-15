@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Inbox{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Inbox</h1>
+  <a href="{{ url_for('messages.compose') }}" class="btn btn-primary btn-sm">+ New Message</a>
+  <a href="{{ url_for('messages.sent') }}" class="btn btn-outline btn-sm">Sent</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th></th><th>From</th><th>Subject</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for msg in messages %}
+    <tr {% if not msg.is_read %}style="font-weight:600;"{% endif %}>
+      <td style="width:10px;">{% if not msg.is_read %}<span class="unread-dot"></span>{% endif %}</td>
+      <td>{{ msg.sender.full_name }}</td>
+      <td><a href="{{ url_for('messages.read_message', msg_id=msg.id) }}">{{ msg.subject }}</a></td>
+      <td style="white-space:nowrap;">{{ msg.created_at.strftime('%b %d, %I:%M %p') }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('messages.delete_message', msg_id=msg.id) }}"
+              style="display:inline;"
+              onsubmit="return requireConfirm(this.id,'Delete Message','Permanently delete this message?')" id="del-msg-{{ msg.id }}">
+          <button class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color:var(--text-muted);">Your inbox is empty.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

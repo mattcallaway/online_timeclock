@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>User Management</h1>
+  <a href="{{ url_for('admin.user_create') }}" class="btn btn-primary">+ New User</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.full_name }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.email or '—' }}</td>
+      <td><span class="badge {% if u.role == 'admin' %}badge-blue{% else %}badge-gray{% endif %}">{{ u.role }}</span></td>
+      <td><span class="badge {% if u.is_active %}badge-green{% else %}badge-red{% endif %}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+      <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <a href="{{ url_for('admin.user_edit', user_id=u.id) }}" class="btn btn-outline btn-sm">Edit</a>
+        <a href="{{ url_for('admin.user_reset_password', user_id=u.id) }}" class="btn btn-outline btn-sm">Reset PW</a>
+        {% if u.id != current_user.id %}
+          {% if u.is_active %}
+          <form method="POST" action="{{ url_for('admin.user_deactivate', user_id=u.id) }}"
+                style="display:inline;"
+                onsubmit="return requireConfirm(this.id,'Deactivate User','Deactivate {{ u.full_name }}? They will not be able to log in.')" id="deact-{{ u.id }}">
+            <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('admin.user_reactivate', user_id=u.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-success btn-sm">Reactivate</button>
+          </form>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

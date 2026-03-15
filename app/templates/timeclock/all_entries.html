@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}All Time Entries{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>All Time Entries</h1>
+  <a href="{{ url_for('timeclock.admin_add_entry') }}" class="btn btn-primary btn-sm">+ Add Entry</a>
+  <a href="{{ url_for('admin.export_time_entries') }}" class="btn btn-outline btn-sm">Export All CSV</a>
+</div>
+<!-- Filter -->
+<form method="GET" style="margin-bottom:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+  <select name="user_id" onchange="this.form.submit()">
+    <option value="">All Employees</option>
+    {% for emp in employees %}
+    <option value="{{ emp.id }}" {% if user_filter == emp.id %}selected{% endif %}>{{ emp.full_name }}</option>
+    {% endfor %}
+  </select>
+</form>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Employee</th><th>Date</th><th>In</th><th>Out</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for e in entries.items %}
+    <tr>
+      <td>{{ e.employee.full_name }}</td>
+      <td>{{ e.clock_in.strftime('%Y-%m-%d') }}</td>
+      <td>{{ e.clock_in.strftime('%I:%M %p') }}</td>
+      <td>{{ e.clock_out.strftime('%I:%M %p') if e.clock_out else '<em>Open</em>' | safe }}</td>
+      <td>{{ e.hours_display }}</td>
+      <td><span class="badge {% if e.status=='normal' %}badge-green{% elif e.status=='edited' %}badge-blue{% elif e.status=='pending_edit' %}badge-yellow{% else %}badge-red{% endif %}">{{ e.status }}</span></td>
+      <td>
+        <a href="{{ url_for('timeclock.entry_detail', entry_id=e.id) }}" class="btn btn-outline btn-sm">Detail</a>
+        <a href="{{ url_for('timeclock.admin_edit_entry', entry_id=e.id) }}" class="btn btn-warning btn-sm">Edit</a>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="color:var(--text-muted);">No entries found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="pagination">
+    {% if entries.has_prev %}<a href="{{ url_for('timeclock.all_entries', page=entries.prev_num, user_id=user_filter or '') }}">&laquo; Prev</a>{% endif %}
+    <span class="active">{{ entries.page }} / {{ entries.pages }}</span>
+    {% if entries.has_next %}<a href="{{ url_for('timeclock.all_entries', page=entries.next_num, user_id=user_filter or '') }}">Next &raquo;</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

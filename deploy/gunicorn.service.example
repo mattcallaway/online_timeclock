@@ -1,0 +1,30 @@
+# Gunicorn systemd service file
+# Place at: /etc/systemd/system/timeclock.service
+# Then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable timeclock
+#   sudo systemctl start timeclock
+#   sudo systemctl status timeclock
+
+[Unit]
+Description=TimeClock Flask Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/timeclock/timeclock
+# Activate virtualenv and run gunicorn
+ExecStart=/home/timeclock/timeclock/venv/bin/gunicorn \
+          --workers 3 \
+          --bind 127.0.0.1:8000 \
+          --access-logfile /var/log/timeclock/access.log \
+          --error-logfile /var/log/timeclock/error.log \
+          wsgi:app
+EnvironmentFile=/home/timeclock/timeclock/.env
+
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

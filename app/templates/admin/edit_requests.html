@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Edit Requests{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Time Edit Requests</h1></div>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Employee</th><th>Entry</th><th>Req. In</th><th>Req. Out</th><th>Reason</th><th>Submitted</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r.requester.full_name }}</td>
+      <td><a href="{{ url_for('timeclock.entry_detail', entry_id=r.entry_id) }}">#{{ r.entry_id }}</a></td>
+      <td>{{ r.requested_clock_in.strftime('%Y-%m-%d %H:%M') if r.requested_clock_in else '—' }}</td>
+      <td>{{ r.requested_clock_out.strftime('%Y-%m-%d %H:%M') if r.requested_clock_out else '—' }}</td>
+      <td style="max-width:200px;">{{ r.reason }}</td>
+      <td>{{ r.created_at.strftime('%b %d %H:%M') }}</td>
+      <td>
+        <span class="badge {% if r.status == 'pending' %}badge-yellow{% elif r.status == 'approved' %}badge-green{% else %}badge-red{% endif %}">{{ r.status }}</span>
+      </td>
+      <td>
+        {% if r.status == 'pending' %}
+        <form method="POST" action="{{ url_for('admin.approve_edit_request', req_id=r.id) }}" style="display:inline;"
+              onsubmit="return requireConfirm(this.id,'Approve Request','Apply the requested time changes to entry #{{ r.entry_id }}?')" id="approve-{{ r.id }}">
+          <button type="submit" class="btn btn-success btn-sm">Approve</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.deny_edit_request', req_id=r.id) }}" style="display:inline;"
+              onsubmit="return requireConfirm(this.id,'Deny Request','Deny this edit request? The time entry will remain unchanged.')" id="deny-{{ r.id }}">
+          <button type="submit" class="btn btn-danger btn-sm">Deny</button>
+        </form>
+        {% else %}
+        <span style="font-size:.8rem;color:var(--text-muted);">
+          {% if r.reviewer %}By {{ r.reviewer.username }}{% endif %}
+        </span>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" style="color:var(--text-muted);">No edit requests.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

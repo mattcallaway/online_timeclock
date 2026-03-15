@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Request Edit{% endblock %}
+{% block content %}
+<div style="max-width:520px;">
+  <div class="page-header">
+    <h1>Request Time Entry Edit</h1>
+  </div>
+  <div class="card">
+    <p style="margin-bottom:1rem;color:var(--text-muted);">
+      Entry #{{ entry.id }} — clocked in {{ entry.clock_in.strftime('%B %d, %Y at %I:%M %p') }}.
+      Specify the correct times and a reason. An admin will review and approve or deny your request.
+    </p>
+    <form method="POST">
+      <div class="form-group">
+        <label>Correct Clock-In Time</label>
+        <input type="datetime-local" name="requested_clock_in"
+               value="{{ entry.clock_in.strftime('%Y-%m-%dT%H:%M') if entry.clock_in else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Correct Clock-Out Time</label>
+        <input type="datetime-local" name="requested_clock_out"
+               value="{{ entry.clock_out.strftime('%Y-%m-%dT%H:%M') if entry.clock_out else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Reason for Edit *</label>
+        <textarea name="reason" required placeholder="Explain why a correction is needed..."></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+        <a href="{{ url_for('timeclock.entry_detail', entry_id=entry.id) }}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

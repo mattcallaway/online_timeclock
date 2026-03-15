@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div style="max-width:440px;">
+  <div class="page-header"><h1>My Profile</h1></div>
+  <div class="card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" value="{{ current_user.username }}" disabled style="background:#f1f5f9;">
+      </div>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" name="full_name" value="{{ current_user.full_name }}" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ current_user.email or '' }}">
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline">Change Password</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

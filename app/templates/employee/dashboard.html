@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+
+{% set elapsed_secs = 0 %}
+{% if active_entry %}
+  {# compute epoch seconds for the JS timer #}
+  {% set ci = active_entry.clock_in %}
+  {% set elapsed_secs = (ci | string) %}
+{% endif %}
+
+<div class="page-header">
+  <h1>Welcome, {{ current_user.full_name }}</h1>
+</div>
+
+<!-- Clock Status -->
+{% if active_entry %}
+  {% if active_entry.overdue_reminder %}
+  <div class="overdue-banner">⚠️ You have been clocked in for over 6 hours. Please clock out if your shift is over.</div>
+  {% endif %}
+  <div class="clock-status in">
+    <div class="status-label">🟢 You are clocked in</div>
+    <div class="timer" id="live-timer"
+         data-start="{{ ((active_entry.clock_in - active_entry.clock_in.__class__(1970,1,1)).total_seconds() | int) if active_entry.clock_in else 0 }}">00:00:00</div>
+    <div style="color:var(--text-muted);font-size:.85rem;">Since {{ active_entry.clock_in.strftime('%I:%M %p') }}</div>
+    <form method="POST" action="{{ url_for('timeclock.clock_out') }}" style="margin-top:1rem;"
+          onsubmit="return requireConfirm(this.id,'Clock Out','Are you sure you want to clock out?')" id="form-clockout">
+      <button type="submit" class="btn btn-danger btn-lg">Clock Out</button>
+    </form>
+  </div>
+{% else %}
+  <div class="clock-status out">
+    <div class="status-label">⚪ You are clocked out</div>
+    <div style="color:var(--text-muted);font-size:.875rem;margin:.5rem 0;">Ready to start your shift?</div>
+    <form method="POST" action="{{ url_for('timeclock.clock_in') }}" style="margin-top:.75rem;">
+      <button type="submit" class="btn btn-success btn-lg">Clock In</button>
+    </form>
+  </div>
+{% endif %}
+
+<div class="grid-2">
+  <!-- Recent Entries -->
+  <div class="card">
+    <div class="card-title">Recent Time Entries</div>
+    {% if recent_entries %}
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for e in recent_entries %}
+      <tr>
+        <td>{{ e.clock_in.strftime('%b %d') }}</td>
+        <td>{{ e.clock_in.strftime('%I:%M %p') }}</td>
+        <td>{{ e.clock_out.strftime('%I:%M %p') if e.clock_out else '—' }}</td>
+        <td>{{ e.hours_display }}</td>
+        <td><span class="badge {% if e.status == 'normal' %}badge-green{% elif e.status == 'edited' %}badge-blue{% elif e.status == 'pending_edit' %}badge-yellow{% else %}badge-red{% endif %}">{{ e.status }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <div style="margin-top:.75rem;">
+      <a href="{{ url_for('timeclock.my_entries') }}" class="btn btn-outline btn-sm">View All</a>
+      <a href="{{ url_for('timeclock.export_own') }}" class="btn btn-outline btn-sm">Export CSV</a>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);">No time entries yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Upcoming Shifts -->
+  <div class="card">
+    <div class="card-title">Upcoming Shifts</div>
+    {% if upcoming_shifts %}
+    {% for s in upcoming_shifts %}
+    <div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+      <strong>{{ s.shift_start.strftime('%a, %b %d') }}</strong>
+      <span style="color:var(--text-muted);">{{ s.shift_start.strftime('%I:%M %p') }} – {{ s.shift_end.strftime('%I:%M %p') }}</span>
+      {% if s.notes %}<div style="font-size:.8rem;color:var(--text-muted);">{{ s.notes }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <div style="margin-top:.75rem;">
+      <a href="{{ url_for('schedule.view_schedule') }}" class="btn btn-outline btn-sm">Full Schedule</a>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);">No upcoming shifts.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Messages -->
+<div class="card">
+  <div class="card-title">Messages
+    {% if unread_messages %}<span class="badge badge-red">{{ unread_messages|length }} unread</span>{% endif %}
+  </div>
+  {% if unread_messages %}
+  {% for msg in unread_messages %}
+  <div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+    <a href="{{ url_for('messages.read_message', msg_id=msg.id) }}"><strong>{{ msg.subject }}</strong></a>
+    <span class="unread-dot"></span>
+    <span style="font-size:.8rem;color:var(--text-muted);">from {{ msg.sender.full_name }} · {{ msg.created_at.strftime('%b %d, %I:%M %p') }}</span>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p style="color:var(--text-muted);">No unread messages.</p>
+  {% endif %}
+  <div style="margin-top:.75rem;">
+    <a href="{{ url_for('messages.inbox') }}" class="btn btn-outline btn-sm">Inbox</a>
+    <a href="{{ url_for('messages.compose') }}" class="btn btn-primary btn-sm">New Message</a>
+  </div>
+</div>
+
+{% endblock %}

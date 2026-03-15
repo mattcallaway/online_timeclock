@@ -1,0 +1,42 @@
+# Sample Nginx config for Linode deployment
+# Place at: /etc/nginx/sites-available/timeclock
+# Then: sudo ln -s /etc/nginx/sites-available/timeclock /etc/nginx/sites-enabled/
+# And: sudo nginx -t && sudo systemctl reload nginx
+
+server {
+    listen 80;
+    server_name your-domain.com;  # Replace with your domain or IP
+
+    # Redirect all HTTP to HTTPS (uncomment after obtaining cert)
+    # return 301 https://$host$request_uri;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static files (if served separately in future)
+    # location /static/ {
+    #     alias /home/timeclock/timeclock/app/static/;
+    # }
+}
+
+# HTTPS block (uncomment after running: sudo certbot --nginx -d your-domain.com)
+# server {
+#     listen 443 ssl;
+#     server_name your-domain.com;
+#
+#     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+#
+#     location / {
+#         proxy_pass http://127.0.0.1:8000;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+# }

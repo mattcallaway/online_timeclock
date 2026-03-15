@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Admin Dashboard</h1>
+  <a href="{{ url_for('admin.export_time_entries') }}" class="btn btn-outline btn-sm">Export All CSV</a>
+  <a href="{{ url_for('admin.export_schedules') }}" class="btn btn-outline btn-sm">Export Schedules</a>
+</div>
+
+<!-- Stat Row -->
+<div class="grid-3" style="margin-bottom:1.25rem;">
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--success);">{{ open_entries|length }}</div>
+    <div class="stat-label">Currently Clocked In</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--danger);">{{ overdue|length }}</div>
+    <div class="stat-label">Overdue (&gt;6hr)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" style="color:var(--warning);">{{ pending_requests|length }}</div>
+    <div class="stat-label">Pending Edit Requests</div>
+  </div>
+</div>
+
+{% if overdue %}
+<div class="overdue-banner">
+  ⚠️ Overdue clock-outs:
+  {% for e in overdue %}
+    <strong>{{ e.employee.full_name }}</strong> ({{ e.hours_display }}){% if not loop.last %}, {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <!-- Currently Clocked In -->
+  <div class="card">
+    <div class="card-title">Currently Clocked In</div>
+    {% if open_entries %}
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Employee</th><th>Since</th><th>Duration</th><th></th></tr></thead>
+      <tbody>
+      {% for e in open_entries %}
+      <tr>
+        <td>{{ e.employee.full_name }}{% if e.overdue_reminder %} <span class="badge badge-red">Overdue</span>{% endif %}</td>
+        <td>{{ e.clock_in.strftime('%I:%M %p') }}</td>
+        <td>{{ e.hours_display }}</td>
+        <td><a href="{{ url_for('timeclock.entry_detail', entry_id=e.id) }}" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);">No employees currently clocked in.</p>
+    {% endif %}
+    <div style="margin-top:.75rem;">
+      <a href="{{ url_for('timeclock.all_entries') }}" class="btn btn-outline btn-sm">All Entries</a>
+      <a href="{{ url_for('timeclock.admin_add_entry') }}" class="btn btn-primary btn-sm">+ Add Entry</a>
+    </div>
+  </div>
+
+  <!-- Pending Edit Requests -->
+  <div class="card">
+    <div class="card-title">Pending Edit Requests</div>
+    {% if pending_requests %}
+    {% for r in pending_requests %}
+    <div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+      <strong>{{ r.requester.full_name }}</strong>
+      <span style="font-size:.8rem;color:var(--text-muted);">Entry #{{ r.entry_id }} · {{ r.created_at.strftime('%b %d') }}</span>
+      <div style="font-size:.85rem;">{{ r.reason[:80] }}{% if r.reason|length > 80 %}…{% endif %}</div>
+      <div style="margin-top:.35rem;">
+        <a href="{{ url_for('admin.edit_requests') }}" class="btn btn-warning btn-sm">Review</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:var(--text-muted);">No pending requests.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Unread Messages -->
+  <div class="card">
+    <div class="card-title">Unread Messages
+      {% if unread_messages %}<span class="badge badge-red">{{ unread_messages|length }}</span>{% endif %}
+    </div>
+    {% if unread_messages %}
+    {% for msg in unread_messages %}
+    <div style="padding:.4rem 0;border-bottom:1px solid var(--border);">
+      <a href="{{ url_for('messages.read_message', msg_id=msg.id) }}">{{ msg.subject }}</a>
+      <span class="unread-dot"></span>
+      <span style="font-size:.8rem;color:var(--text-muted);">from {{ msg.sender.full_name }}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:var(--text-muted);">No unread messages.</p>
+    {% endif %}
+    <div style="margin-top:.75rem;">
+      <a href="{{ url_for('messages.inbox') }}" class="btn btn-outline btn-sm">Inbox</a>
+      <a href="{{ url_for('messages.compose') }}" class="btn btn-primary btn-sm">New Message</a>
+    </div>
+  </div>
+
+  <!-- Recent Audit Activity -->
+  <div class="card">
+    <div class="card-title">Recent Audit Activity</div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Action</th><th>By</th></tr></thead>
+      <tbody>
+      {% for log in recent_audit %}
+      <tr>
+        <td style="white-space:nowrap;">{{ log.created_at.strftime('%b %d %H:%M') }}</td>
+        <td><code style="font-size:.8rem;">{{ log.action }}</code></td>
+        <td>{{ log.actor.username if log.actor else 'system' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <div style="margin-top:.75rem;">
+      <a href="{{ url_for('admin.audit_log') }}" class="btn btn-outline btn-sm">Full Audit Log</a>
+    </div>
+  </div>
+</div>
+
+<!-- Employee List -->
+<div class="card">
+  <div class="card-title">All Employees</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Username</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for emp in employees %}
+    <tr>
+      <td>{{ emp.full_name }}</td>
+      <td>{{ emp.username }}</td>
+      <td>
+        {% if not emp.is_active %}
+          <span class="badge badge-gray">Inactive</span>
+        {% elif emp.active_entry %}
+          <span class="badge badge-green">Clocked In</span>
+        {% else %}
+          <span class="badge badge-gray">Clocked Out</span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('admin.user_edit', user_id=emp.id) }}" class="btn btn-outline btn-sm">Edit</a>
+        <a href="{{ url_for('messages.compose') }}?to={{ emp.id }}" class="btn btn-outline btn-sm">Message</a>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div style="margin-top:.75rem;">
+    <a href="{{ url_for('admin.user_list') }}" class="btn btn-outline btn-sm">Manage Users</a>
+    <a href="{{ url_for('admin.user_create') }}" class="btn btn-primary btn-sm">+ New User</a>
+  </div>
+</div>
+{% endblock %}

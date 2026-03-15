@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Compose Message{% endblock %}
+{% block content %}
+<div style="max-width:520px;">
+  <div class="page-header">
+    <h1>New Message</h1>
+    <a href="{{ url_for('messages.inbox') }}" class="btn btn-outline btn-sm">← Inbox</a>
+  </div>
+  <div class="card">
+    <form method="POST">
+      <div class="form-group">
+        <label>To *</label>
+        <select name="recipient_id" required>
+          <option value="">— Select Recipient —</option>
+          {% for r in recipients %}
+          <option value="{{ r.id }}" {% if default_recipient_id == r.id %}selected{% endif %}>{{ r.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Subject *</label>
+        <input type="text" name="subject" required>
+      </div>
+      <div class="form-group">
+        <label>Message *</label>
+        <textarea name="body" style="min-height:140px;" required></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" class="btn btn-primary">Send Message</button>
+        <a href="{{ url_for('messages.inbox') }}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# SQLite database (runtime file, not source)
+*.db
+*.sqlite3
+instance/
+
+# Flask-Migrate versions (keep the folder but not the .pyc)
+migrations/__pycache__/
+
+# Environment / secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*.swo

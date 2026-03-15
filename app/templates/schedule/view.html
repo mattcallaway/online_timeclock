@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Schedule{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Schedule — Week of {{ week_start.strftime('%B %d, %Y') }}</h1>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('schedule.create_shift') }}" class="btn btn-primary btn-sm">+ Add Shift</a>
+  {% endif %}
+</div>
+
+<!-- Week nav -->
+<div style="display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;">
+  <a href="{{ url_for('schedule.view_schedule', week=prev_week) }}" class="btn btn-outline btn-sm">&laquo; Prev Week</a>
+  <a href="{{ url_for('schedule.view_schedule') }}" class="btn btn-outline btn-sm">This Week</a>
+  <a href="{{ url_for('schedule.view_schedule', week=next_week) }}" class="btn btn-outline btn-sm">Next Week &raquo;</a>
+</div>
+
+<!-- Week range summary -->
+<p style="margin-bottom:.75rem;color:var(--text-muted);">
+  Showing shifts from <strong>{{ week_start.strftime('%A, %B %d') }}</strong>
+  to <strong>{{ week_end.strftime('%A, %B %d, %Y') }}</strong>.
+</p>
+<div class="card" style="margin-top:.5rem;">
+  <div class="card-title">Shifts This Week</div>
+  {% if shifts %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Employee</th><th>Day</th><th>Start</th><th>End</th><th>Notes</th>{% if current_user.is_admin %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for s in shifts %}
+    <tr>
+      <td>{{ s.employee_schedule.full_name }}</td>
+      <td>{{ s.shift_start.strftime('%A, %b %d') }}</td>
+      <td>{{ s.shift_start.strftime('%I:%M %p') }}</td>
+      <td>{{ s.shift_end.strftime('%I:%M %p') }}</td>
+      <td>{{ s.notes or '—' }}</td>
+      {% if current_user.is_admin %}
+      <td>
+        <a href="{{ url_for('schedule.edit_shift', shift_id=s.id) }}" class="btn btn-outline btn-sm">Edit</a>
+        <form method="POST" action="{{ url_for('schedule.delete_shift', shift_id=s.id) }}"
+              style="display:inline;"
+              onsubmit="return requireConfirm(this.id,'Delete Shift','Remove this scheduled shift?')" id="del-shift-{{ s.id }}">
+          <button class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted);">No shifts scheduled for this week.</p>
+  {% endif %}
+</div>
+{% endblock %}

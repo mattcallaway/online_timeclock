@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if entry else 'Add' }} Time Entry{% endblock %}
+{% block content %}
+<div style="max-width:540px;">
+  <div class="page-header">
+    <h1>{{ 'Edit Time Entry' if entry else 'Add Time Entry' }}</h1>
+  </div>
+  <div class="card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Employee *</label>
+        <select name="user_id" {% if entry %}disabled{% endif %} required>
+          <option value="">— Select Employee —</option>
+          {% for emp in employees %}
+          <option value="{{ emp.id }}" {% if entry and entry.user_id == emp.id %}selected{% elif not entry %}{% endif %}>{{ emp.full_name }}</option>
+          {% endfor %}
+        </select>
+        {% if entry %}
+        <input type="hidden" name="user_id" value="{{ entry.user_id }}">
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label>Clock In *</label>
+        <input type="datetime-local" name="clock_in"
+               value="{{ entry.clock_in.strftime('%Y-%m-%dT%H:%M') if entry and entry.clock_in else '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Clock Out</label>
+        <input type="datetime-local" name="clock_out"
+               value="{{ entry.clock_out.strftime('%Y-%m-%dT%H:%M') if entry and entry.clock_out else '' }}">
+        <p class="help-text">Leave blank for an open (currently active) entry.</p>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          {% for s in ['normal', 'edited', 'missed_punch', 'pending_edit'] %}
+          <option value="{{ s }}" {% if entry and entry.status == s %}selected{% elif not entry and s == 'normal' %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes">{{ entry.notes or '' if entry else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Reason for {{ 'edit' if entry else 'manual add' }} *</label>
+        <input type="text" name="reason" required placeholder="Brief explanation is required for audit trail">
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" class="btn btn-primary">{{ 'Save Changes' if entry else 'Add Entry' }}</button>
+        <a href="{{ url_for('timeclock.all_entries') }}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
