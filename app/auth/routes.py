@@ -25,6 +25,42 @@ def login():
     return render_template("auth/login.html")
 
 
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        full_name = request.form.get("full_name", "").strip()
+        password = request.form.get("password", "")
+        
+        if not username or not full_name or not password:
+            flash("All fields are required.", "danger")
+            return render_template("auth/register.html")
+            
+        if User.query.filter_by(username=username).first():
+            flash("Username already taken.", "danger")
+            return render_template("auth/register.html")
+            
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return render_template("auth/register.html")
+            
+        new_user = User(username=username, full_name=full_name, role="employee")
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        log_audit("user.registered", actor=new_user, target_user=new_user, target_type="user", target_id=new_user.id, request=request)
+        db.session.commit()
+        
+        login_user(new_user, remember=True)
+        flash("Account created successfully. Welcome!", "success")
+        return redirect(url_for("index"))
+        
+    return render_template("auth/register.html")
+
+
 @auth_bp.route("/logout")
 @login_required
 def logout():

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block content %}
+<div style="max-width:380px;margin:4rem auto;">
+  <div class="card">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <h1 style="font-size:1.4rem;margin-top:.5rem;">Create Account</h1>
+      <p style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem;">Join Employee TimeClock</p>
+    </div>
+    <form method="POST">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <p class="help-text">Must be at least 8 characters long.</p>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:1rem;">Sign Up</button>
+    </form>
+    <div style="text-align:center;font-size:.875rem;">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Log In</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

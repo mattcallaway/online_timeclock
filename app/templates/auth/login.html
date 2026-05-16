@@ -18,11 +18,14 @@
         <input type="password" id="password" name="password" autocomplete="current-password" required>
       </div>
       <div class="form-group" style="display:flex;align-items:center;gap:.5rem;">
-        <input type="checkbox" id="remember" name="remember" style="width:auto;">
+        <input type="checkbox" id="remember" name="remember" style="width:auto;" checked>
         <label for="remember" style="margin:0;font-weight:normal;">Remember me for 30 days</label>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Sign In</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:1rem;">Sign In</button>
     </form>
+    <div style="text-align:center;font-size:.875rem;">
+      New User? <a href="{{ url_for('auth.register') }}">Create an Account</a>
+    </div>
   </div>
 </div>
 {% endblock %}
