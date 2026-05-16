@@ -72,9 +72,9 @@
     .clock-status .remind { color: var(--danger); font-weight: 600; font-size: .9rem; margin-top: .5rem; }
 
     /* ── Buttons ──────────────────────────────────────────────────── */
-    .btn { display:inline-block; padding: .5rem 1rem; border-radius: var(--radius);
+    .btn { display:inline-block; padding: .65rem 1rem; border-radius: var(--radius);
            border: none; cursor: pointer; font-size: .9rem; font-weight: 500; line-height: 1.4;
-           text-align: center; transition: opacity .15s; }
+           text-align: center; transition: opacity .15s; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
     .btn:hover { opacity: .9; text-decoration: none; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-danger  { background: var(--danger);  color: #fff; }
@@ -97,7 +97,7 @@
     label { display: block; font-size: .875rem; font-weight: 500; margin-bottom: .3rem; }
     input[type=text], input[type=password], input[type=email], input[type=datetime-local],
     input[type=date], select, textarea {
-      width: 100%; padding: .5rem .75rem; border: 1px solid var(--border);
+      width: 100%; padding: .65rem .75rem; border: 1px solid var(--border); min-height: 44px;
       border-radius: var(--radius); font-size: .9rem; background: var(--surface); color: var(--text); }
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
     textarea { min-height: 100px; resize: vertical; }
@@ -150,8 +150,11 @@
 
     /* ── Responsive nav ───────────────────────────────────────────── */
     @media (max-width: 640px) {
-      nav { flex-wrap: wrap; height: auto; padding: .5rem 1rem; gap: .5rem; }
-      nav .nav-links { gap: .5rem; }
+      nav { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; height: auto; padding: .75rem 1rem; gap: 1rem; scrollbar-width: none; }
+      nav::-webkit-scrollbar { display: none; }
+      nav .nav-links { flex-wrap: nowrap; gap: .75rem; }
+      .card { padding: 1rem; }
+      .container { margin: 1rem auto; }
     }
   </style>
 </head>
