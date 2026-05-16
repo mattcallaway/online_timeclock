@@ -39,6 +39,10 @@ class User(UserMixin, db.Model):
                                 backref="employee_schedule", lazy="dynamic")
     edit_requests = db.relationship("EditRequest", foreign_keys="EditRequest.requester_id",
                                     backref="requester", lazy="dynamic")
+    claimed_turf_codes = db.relationship("TurfCode", foreign_keys="TurfCode.claimed_by_user_id",
+                                         backref="claimer", lazy="dynamic")
+    created_turf_codes = db.relationship("TurfCode", foreign_keys="TurfCode.created_by_user_id",
+                                         backref="creator", lazy="dynamic")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -242,3 +246,27 @@ class EditRequest(db.Model):
 
     def __repr__(self):
         return f"<EditRequest {self.id} entry={self.entry_id} status={self.status}>"
+
+
+# ---------------------------------------------------------------------------
+# Turf Codes
+# ---------------------------------------------------------------------------
+
+class TurfCode(db.Model):
+    __tablename__ = "turf_codes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default="available", nullable=False)
+    # status values: available, claimed, inactive, disabled
+    claimed_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    claimed_at = db.Column(db.DateTime, nullable=True)
+    active_for_user = db.Column(db.Boolean, default=False, nullable=False)
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=now_utc, nullable=False)
+    updated_at = db.Column(db.DateTime, default=now_utc, onupdate=now_utc, nullable=False)
+
+    def __repr__(self):
+        return f"<TurfCode {self.id} code={self.code} city={self.city}>"

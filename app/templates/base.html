@@ -168,12 +168,14 @@
       <a href="{{ url_for('admin.edit_requests') }}">Edit Requests</a>
       <a href="{{ url_for('schedule.view_schedule') }}">Schedule</a>
       <a href="{{ url_for('messages.inbox') }}">Messages</a>
+      <a href="{{ url_for('turf.index') }}">Turf Codes</a>
       <a href="{{ url_for('admin.audit_log') }}">Audit Log</a>
     {% else %}
       <a href="{{ url_for('employee.dashboard') }}">Dashboard</a>
       <a href="{{ url_for('timeclock.my_entries') }}">My Time</a>
       <a href="{{ url_for('schedule.view_schedule') }}">Schedule</a>
       <a href="{{ url_for('messages.inbox') }}">Messages</a>
+      <a href="{{ url_for('turf.index') }}">Turf Codes</a>
       <a href="{{ url_for('employee.my_audit') }}">My History</a>
     {% endif %}
   </div>

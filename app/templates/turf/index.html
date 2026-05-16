@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Turf Codes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Turf Codes</h1>
+  {% if current_user.is_admin %}
+    <a href="{{ url_for('turf.new_code') }}" class="btn btn-primary btn-sm">Add New Code</a>
+  {% endif %}
+</div>
+
+{% if current_user.is_admin %}
+<!-- Admin View -->
+<div class="card">
+  <div class="card-title">Manage Turf Codes</div>
+  <form method="GET" action="{{ url_for('turf.index') }}" class="form-group" style="display:flex; gap:1rem; margin-bottom:1rem;">
+    <input type="text" name="city" placeholder="Filter by City..." value="{{ city_filter }}" style="max-width:200px;">
+    <select name="status" style="max-width:200px;">
+      <option value="">All Statuses</option>
+      <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+      <option value="claimed" {% if status_filter == 'claimed' %}selected{% endif %}>Claimed</option>
+      <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+      <option value="disabled" {% if status_filter == 'disabled' %}selected{% endif %}>Disabled</option>
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+  </form>
+  
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>City</th>
+          <th>Code</th>
+          <th>Status</th>
+          <th>Claimed By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tc in codes %}
+        <tr>
+          <td>{{ tc.city }}</td>
+          <td>{{ tc.code }}</td>
+          <td>
+            <span class="badge {% if tc.status == 'available' %}badge-green{% elif tc.status == 'claimed' %}badge-blue{% elif tc.status == 'disabled' %}badge-red{% else %}badge-gray{% endif %}">
+              {{ tc.status|title }}
+            </span>
+            {% if tc.active_for_user %}
+              <span class="badge badge-yellow">Active</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if tc.claimer %}
+              {{ tc.claimer.full_name }}<br>
+              <small class="help-text">{{ tc.claimed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('turf.edit_code', code_id=tc.id) }}" class="btn btn-outline btn-sm">Edit</a>
+            {% if tc.status != 'disabled' %}
+              <form method="POST" action="{{ url_for('turf.disable_code', code_id=tc.id) }}" style="display:inline;" id="disable-{{ tc.id }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return requireConfirm('disable-{{ tc.id }}', 'Disable Code', 'Are you sure you want to disable this code?')">Disable</button>
+              </form>
+            {% else %}
+              <form method="POST" action="{{ url_for('turf.reactivate_code', code_id=tc.id) }}" style="display:inline;" id="reactivate-{{ tc.id }}">
+                <button type="submit" class="btn btn-success btn-sm" onclick="return requireConfirm('reactivate-{{ tc.id }}', 'Reactivate Code', 'Are you sure you want to reactivate this code? It will become available.')">Reactivate</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">No turf codes found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<!-- Employee View -->
+<div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+  <a href="{{ url_for('turf.my_codes') }}" class="btn btn-outline btn-sm">View My Claimed Codes</a>
+</div>
+
+{% if active_code %}
+<div class="card" style="border-left: 4px solid var(--primary);">
+  <div class="card-title">Your Active Turf Code</div>
+  <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+    {{ active_code.code }}
+  </div>
+  <p><strong>City:</strong> {{ active_code.city }}</p>
+  {% if active_code.description %}
+    <p><strong>Notes:</strong> {{ active_code.description }}</p>
+  {% endif %}
+  <p class="help-text">Claimed on: {{ active_code.claimed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-title">Available Turf Codes</div>
+  
+  <form method="GET" action="{{ url_for('turf.index') }}" class="form-group" style="display:flex; gap:1rem; margin-bottom:1rem;">
+    <input type="text" name="city" placeholder="Filter by City..." value="{{ city_filter }}" style="max-width:200px;">
+    <button type="submit" class="btn btn-outline btn-sm">Search</button>
+  </form>
+  
+  {% if grouped_codes %}
+    {% for city, city_codes in grouped_codes.items() %}
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1.1rem;">{{ city }}</h3>
+      <div class="grid-3">
+        {% for tc in city_codes %}
+        <div class="stat-box" style="text-align: left;">
+          <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">{{ tc.code }}</div>
+          {% if tc.description %}
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">{{ tc.description }}</p>
+          {% endif %}
+          <form method="POST" action="{{ url_for('turf.claim_code', code_id=tc.id) }}" id="claim-{{ tc.id }}">
+            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;" onclick="return requireConfirm('claim-{{ tc.id }}', 'Claim Code', 'Claim {{ tc.code }}? Your current active code will become inactive.')">Claim</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No available turf codes found.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

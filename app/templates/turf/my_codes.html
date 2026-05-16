@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My Turf Codes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My Claimed Turf Codes</h1>
+  <a href="{{ url_for('turf.index') }}" class="btn btn-outline btn-sm">Back to Dashboard</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>City</th>
+          <th>Status</th>
+          <th>Claimed On</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tc in codes %}
+        <tr>
+          <td><strong>{{ tc.code }}</strong></td>
+          <td>{{ tc.city }}</td>
+          <td>
+            <span class="badge {% if tc.active_for_user %}badge-green{% else %}badge-gray{% endif %}">
+              {% if tc.active_for_user %}Active{% else %}Inactive{% endif %}
+            </span>
+          </td>
+          <td>{{ tc.claimed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4">You haven't claimed any turf codes yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
