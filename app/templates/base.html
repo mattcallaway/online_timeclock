@@ -150,9 +150,10 @@
 
     /* ── Responsive nav ───────────────────────────────────────────── */
     @media (max-width: 640px) {
-      nav { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; height: auto; padding: .75rem 1rem; gap: 1rem; scrollbar-width: none; }
-      nav::-webkit-scrollbar { display: none; }
-      nav .nav-links { flex-wrap: nowrap; gap: .75rem; }
+      nav { flex-wrap: wrap; height: auto; padding: .75rem 1rem; gap: .5rem; }
+      nav .brand { flex-shrink: 0; }
+      nav .nav-right { margin-left: auto; flex-shrink: 0; }
+      nav .nav-links { flex: 1 1 100%; flex-wrap: wrap; gap: .5rem; padding-top: .25rem; }
       .card { padding: 1rem; }
       .container { margin: 1rem auto; }
     }
